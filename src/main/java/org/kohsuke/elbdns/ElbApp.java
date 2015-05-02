@@ -24,7 +24,7 @@ public class ElbApp extends App {
     }
 
     public ElbApp() {
-        base = Name.fromConstantString("elb.io");
+        base = Name.fromConstantString("elb.io.");
     }
 
     @Override
