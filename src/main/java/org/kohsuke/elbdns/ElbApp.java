@@ -8,9 +8,17 @@ import org.xbill.DNS.Name;
 import org.xbill.DNS.RRset;
 import org.xbill.DNS.SetResponse;
 import org.xbill.DNS.SetResponses;
-import org.xbill.DNS.Type;
+import org.xbill.DNS.TextParseException;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
+ * Maps <tt>*.NAME-elb-ID.REGION.elb.io</tt> to <tt>NAME-elb-ID.REGION.elb.amazonaws.com</tt>.
+ *
+ * <p>
+ * This way, every ELB gets automatic wildcard domain names.
+ *
  * @author Kohsuke Kawaguchi
  */
 public class ElbApp extends App {
@@ -34,14 +42,21 @@ public class ElbApp extends App {
 
     @Override
     protected SetResponse findMatchingRecords(Name name, int type) {
-        System.out.println(name);
-        System.out.println(type);
-        if (type==Type.CNAME || type==Type.ANY) {
-            RRset rrs = new RRset();
-            rrs.addRR(new CNAMERecord(name, DClass.IN, 60, Name.fromConstantString("www.google.com")));
-            return SetResponses.success(rrs);
-        }
+        Name n = name.relativize(base);
 
-        return SetResponses.NXDOMAIN;
+        int l = n.labels();
+
+        if (l <2) // expecting at least two labels: NAME-elb-ID.REGION
+            return SetResponses.NXDOMAIN;
+
+        try {
+            Name t = Name.fromString(n.getLabelString(l - 2) + "." + n.getLabelString(l - 1) + ".elb.amazonaws.com.");
+            return SetResponses.success(new RRset(new CNAMERecord(name, DClass.IN, 60, t)));
+        } catch (TextParseException e) {
+            LOGGER.log(Level.WARNING, "Failed to parse "+name, e);
+            return SetResponses.NXDOMAIN;
+        }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(ElbApp.class.getName());
 }
