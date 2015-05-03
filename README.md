@@ -9,35 +9,8 @@ that my `haproxy` that's sitting behind ELB can direct traffic to the right back
 a custom DNS server where `*.NAME-ID.REGION.elb.kohsuke.org` would be valid CNAME
 for `NAME-ID.REGION.elb.amazonaws.com`.
 
-This project implements that custom DNS server. You can run this like the following:
-
-```
-sudo java -jar elb-dns.jar -b elb.kohsuke.org
-```
-
-Here is my Upstart config file:
-
-```
-description "Run ELB alias DNS"
-author "Kohsuke Kwaguchi"
-
-start on runlevel [2345]
-stop on runlevel [!2345]
-
-setuid root
-
-respawn
-
-script
-  java -jar /home/kohsuke/elb-dns-1.0-SNAPSHOT-jar-with-dependencies.jar -b elb.kohsuke.org
-end script
-```
-
-In the parent DNS, you need to designate this custom DNS server as the delegation target:
-
-```
-elb.kohsuke.org   NS    host.where.I.run.dns.
-```
+This project implements that custom DNS server.
+You are welcome to use `*.elb.kohsuke.org` or run your own instance.
 
 ## Test Drive
 Launch an ELB, and wait for that to become available:
@@ -65,4 +38,34 @@ Name:	bar-1984295099.us-west-2.elb.amazonaws.com
 Address: 54.214.28.101
 ```
 
-You are welcome to use `*.elb.kohsuke.org` or run your own instance.
+## Run Your Own
+You can run this program like the following:
+
+```
+sudo java -jar elb-dns.jar -b elb.example.com
+```
+
+Here is my Upstart config file:
+
+```
+description "Run ELB alias DNS"
+author "Kohsuke Kwaguchi"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+setuid root
+
+respawn
+
+script
+  java -jar /home/kohsuke/elb-dns-1.0-SNAPSHOT-jar-with-dependencies.jar -b elb.example.com
+end script
+```
+
+In the parent DNS, you need to designate this custom DNS server as the delegation target:
+
+```
+elb.example.com   NS    host.where.I.run.dns.
+```
+
