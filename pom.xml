@@ -33,6 +33,11 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>org.kohsuke.elbdns.ElbApp</mainClass>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>

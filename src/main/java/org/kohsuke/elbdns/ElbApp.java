@@ -2,6 +2,7 @@ package org.kohsuke.elbdns;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.xbill.DNS.CNAMERecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Name;
@@ -22,8 +23,7 @@ import java.util.logging.Logger;
  * @author Kohsuke Kawaguchi
  */
 public class ElbApp extends App {
-
-    private final Name base;
+    private Name base;
 
     public static void main(String[] args) throws CmdLineException {
         ElbApp app = new ElbApp();
@@ -31,8 +31,10 @@ public class ElbApp extends App {
         app.main();
     }
 
-    public ElbApp() {
-        base = Name.fromConstantString("elb.io.");
+    @Option(name="-b",usage="Based domain name",required=true)
+    public void setBase(String name) throws TextParseException {
+        if (!name.endsWith("."))    name=name+".";
+        this.base = Name.fromString(name);
     }
 
     @Override

@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  */
 public abstract class App {
     @Option(name="-p",usage="Port to listen to")
-    private int port = 8053;
+    private int port = 53;
 
     private final ExecutorService exec = Executors.newCachedThreadPool();
 
