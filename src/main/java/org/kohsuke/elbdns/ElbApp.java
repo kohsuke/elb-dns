@@ -13,6 +13,9 @@ import org.xbill.DNS.SetResponses;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.*;
@@ -61,6 +64,12 @@ public class ElbApp extends App {
             return SetResponses.NXDOMAIN;
         }
 
+        // for simple string manipulation, we allow names like
+        // http://xyz.mesos-master-elb-1684063001.us-west-2.elb.amazonaws.com.elb.kohsuke.org/
+        while (IGNORED_LABELS.contains(n.getLabelString(l - 1))) {
+            l--;
+        }
+
         try {
             Name t = Name.fromString(n.getLabelString(l - 2) + "." + n.getLabelString(l - 1) + ".elb.amazonaws.com.");
             LOGGER.fine(name + " -> " + t);
@@ -72,4 +81,6 @@ public class ElbApp extends App {
     }
 
     private static final Logger LOGGER = Logger.getLogger(ElbApp.class.getName());
+
+    private static final Set<String> IGNORED_LABELS = new HashSet<>(Arrays.asList("elb","amazonaws","com"));
 }
