@@ -27,6 +27,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.logging.Level.WARNING;
+
 /**
  * Hello world!
  */
@@ -86,25 +88,29 @@ public abstract class App {
 
     public void udp() throws IOException {
         try (DatagramSocket sock = new DatagramSocket(port)) {
-            byte[] in = new byte[512];
-            DatagramPacket i = new DatagramPacket(in, in.length);
+            try {
+                byte[] in = new byte[512];
+                DatagramPacket i = new DatagramPacket(in, in.length);
 
-            while (true) {
-                i.setLength(in.length);
-                sock.receive(i);
-                Message response;
-                try {
-                    Message query = new Message(in);
-                    response = generateReply(query);
-                    if (response == null)
-                        continue;
-                } catch (IOException e) {
-                    response = formerrMessage(in);
+                while (true) {
+                    i.setLength(in.length);
+                    sock.receive(i);
+                    Message response;
+                    try {
+                        Message query = new Message(in);
+                        response = generateReply(query);
+                        if (response == null)
+                            continue;
+                    } catch (IOException e) {
+                        response = formerrMessage(in);
+                    }
+
+                    byte[] r = response.toWire(512);
+                    DatagramPacket o = new DatagramPacket(r, r.length, i.getAddress(), i.getPort());
+                    sock.send(o);
                 }
-
-                byte[] r = response.toWire(512);
-                DatagramPacket o = new DatagramPacket(r, r.length, i.getAddress(), i.getPort());
-                sock.send(o);
+            } catch (IOException e) {
+                LOGGER.log(WARNING, "Failed to process request", e);
             }
         }
     }
@@ -225,7 +231,7 @@ public abstract class App {
             try {
                 r.call();
             } catch (Throwable t) {
-                LOGGER.log(Level.WARNING, "Failed to process "+r, t);
+                LOGGER.log(WARNING, "Failed to process "+r, t);
             }
         };
     }
