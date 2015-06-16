@@ -88,11 +88,11 @@ public abstract class App {
 
     public void udp() throws IOException {
         try (DatagramSocket sock = new DatagramSocket(port)) {
-            try {
-                byte[] in = new byte[512];
-                DatagramPacket i = new DatagramPacket(in, in.length);
+            byte[] in = new byte[512];
+            DatagramPacket i = new DatagramPacket(in, in.length);
 
-                while (true) {
+            while (true) {
+                try {
                     i.setLength(in.length);
                     sock.receive(i);
                     Message response;
@@ -108,9 +108,9 @@ public abstract class App {
                     byte[] r = response.toWire(512);
                     DatagramPacket o = new DatagramPacket(r, r.length, i.getAddress(), i.getPort());
                     sock.send(o);
+                } catch (Exception e) {
+                    LOGGER.log(WARNING, "Failed to process request", e);
                 }
-            } catch (IOException e) {
-                LOGGER.log(WARNING, "Failed to process request", e);
             }
         }
     }
